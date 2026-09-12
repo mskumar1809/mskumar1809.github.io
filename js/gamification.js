@@ -53,15 +53,15 @@ const Game = (() => {
   }
 
   // Streak = sessions in the trailing window (keeps it forgiving for kids).
+  // Planned (not yet played) matches never count.
   function recentStreak(sessions, windowDays) {
     if (!sessions.length) return 0;
     const cutoff = Date.now() - windowDays * 86400000;
-    return sessions.filter(s => new Date(s.date + 'T23:59:59').getTime() >= cutoff).length;
+    return sessions.filter(s => s.status !== 'planned' && new Date(s.date + 'T23:59:59').getTime() >= cutoff).length;
   }
 
   function currentStreakDays(sessions) {
-    // consecutive-day chain: how many distinct days in a row ending today/yesterday
-    const days = [...new Set(sessions.map(s => s.date))].sort().reverse();
+    const days = [...new Set(sessions.filter(s => s.status !== 'planned').map(s => s.date))].sort().reverse();
     if (!days.length) return 0;
     const dayMs = 86400000;
     const today = new Date(); today.setHours(0,0,0,0);

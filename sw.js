@@ -1,8 +1,8 @@
-const CACHE = 'cricket-chronicles-v10';
+const CACHE = 'cricket-chronicles-v11';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './css/styles.css',
-  './js/storage.js', './js/sync.js', './js/voice.js', './js/media.js', './js/mascot.js', './js/mentor.js', './js/onboarding.js', './js/coach.js',
+  './js/storage.js', './js/sync.js', './js/voice.js', './js/media.js', './js/mascot.js', './js/mentor.js', './js/onboarding.js', './js/coach.js', './js/matches.js',
   './js/gamification.js', './js/wizard.js',
   './js/views.js', './js/app.js', './js/charts.js'
 ];

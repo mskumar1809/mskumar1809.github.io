@@ -18,6 +18,7 @@ const App = (() => {
       Mascot.home(state.sessions, state.missions.filter(m => !m.completedAt).length);
     }
     if (currentTab === 'coach') view.innerHTML = CoachView.render(state);
+    if (currentTab === 'matches') view.innerHTML = MatchesView.render(state);
     if (currentTab === 'history') view.innerHTML = Views.history(state);
     if (currentTab === 'rewards') view.innerHTML = Views.rewards(state);
     if (currentTab === 'log') { Wizard.start(state, save, refresh); return; }
@@ -120,6 +121,17 @@ const App = (() => {
     });
 
     on('btnQuickLog', () => refresh('log'));
+    on('btnPlanMatch', () => refresh('log'));
+
+    document.querySelectorAll('.postmatch-btn').forEach(b => b.onclick = () => {
+      const s = state.sessions.find(x => x.id === b.dataset.sid);
+      if (s) Wizard.startPost(state, save, refresh, s);
+    });
+    document.querySelectorAll('.del-planned').forEach(b => b.onclick = () => {
+      if (!confirm('Cancel this match plan?')) return;
+      state.sessions = state.sessions.filter(x => x.id !== b.dataset.sid);
+      save(); render();
+    });
 
     document.querySelectorAll('.practise-btn').forEach(b => b.onclick = () => {
       const res = Game.practiseMission(state, b.dataset.mid);

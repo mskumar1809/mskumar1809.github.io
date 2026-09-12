@@ -171,6 +171,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--green); }
 .roster-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eef3ef; font-weight: 600; font-size: 15px; }
 .roster-row span:first-child { flex: 1; }
 
+/* Matches tab */
+.planned-card { border: 2px solid #7cb8f0; background: #f2f8ff; }
+.planned-head { display: flex; justify-content: space-between; align-items: center; }
+
 /* Action-oriented home */
 .plays-card { border: 2px solid #7cc79a; background: #f2fbf6; }
 .cta-log {

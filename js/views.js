@@ -9,9 +9,22 @@ const Views = (() => {
     const streak = Game.currentStreakDays(state.sessions);
     const open = state.missions.filter(m => !m.completedAt);
     const doneMissions = state.missions.length - open.length;
-    const last = state.sessions[state.sessions.length - 1];
+    const playedSessions = state.sessions.filter(s => s.status !== 'planned');
+    const last = playedSessions[playedSessions.length - 1];
     const today = new Date().toISOString().slice(0, 10);
-    const loggedToday = state.sessions.some(s => s.date === today);
+    const loggedToday = playedSessions.some(s => s.date === today);
+    const nextMatch = state.sessions
+      .filter(s => s.status === 'planned')
+      .sort((a, b) => a.date < b.date ? -1 : 1)[0];
+
+    const nextMatchHTML = nextMatch ? `
+      <div class="card planned-card">
+        <h3>🏟️ Next Match${nextMatch.matchStats?.opponent ? ': vs ' + e(nextMatch.matchStats.opponent) : ''}</h3>
+        <div class="muted small">${Wizard.formatDate(nextMatch.date)}${nextMatch.targets.length ? ' · ' + nextMatch.targets.length + ' targets set' : ''}</div>
+        <div class="settings-row">
+          <button class="btn primary postmatch-btn" data-sid="${nextMatch.id}">📝 Post-match report</button>
+        </div>
+      </div>` : '';
 
     // Action-oriented "what should I do next" panel
     const plays = [];
@@ -51,7 +64,7 @@ const Views = (() => {
           </div>`).join('')}
       </div>` : '';
 
-    const lastCoached = [...state.sessions].reverse().find(s => s.coach && (s.coach.drills || s.coach.feedback));
+    const lastCoached = [...playedSessions].reverse().find(s => s.coach && (s.coach.drills || s.coach.feedback));
     const coachHTML = lastCoached ? `
       <div class="card coach-card">
         <h3>👨‍🏫 Coach's Plan${lastCoached.coach.name ? ' — ' + e(lastCoached.coach.name) : ''}</h3>
@@ -60,7 +73,7 @@ const Views = (() => {
         ${lastCoached.coach.feedback ? `<div class="coach-feedback">💬 ${e(lastCoached.coach.feedback)}${lastCoached.coach.rating ? `<span class="coach-stars"> ${'★'.repeat(lastCoached.coach.rating)}</span>` : ''}</div>` : ''}
       </div>` : '';
 
-    const injuryLessons = state.sessions.filter(s => s.injury.happened && s.injury.lesson);
+    const injuryLessons = playedSessions.filter(s => s.injury.happened && s.injury.lesson);
     const lessonsHTML = injuryLessons.length ? `
       <div class="card">
         <h3>🎓 Injury Prevention Lessons</h3>
@@ -79,15 +92,15 @@ const Views = (() => {
 
     // Strengths & growth picture: skill averages + recent self/coach notes
     const avg = k => {
-      const vals = state.sessions.map(s => s.scores?.[k]).filter(Boolean);
+      const vals = playedSessions.map(s => s.scores?.[k]).filter(Boolean);
       return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
     };
     const skills = ['batting', 'bowling', 'fielding'].map(k => ({ k, v: avg(k) })).filter(x => x.v);
     const strongest = skills.length ? skills.slice().sort((a, b) => b.v - a.v)[0] : null;
     const focusSkill = skills.length > 1 ? skills.slice().sort((a, b) => a.v - b.v)[0] : null;
     const SKILL_LABEL = { batting: '🏏 Batting', bowling: '⚽ Bowling', fielding: '🧤 Fielding' };
-    const recentStrengths = state.sessions.slice(-5).reverse().filter(s => s.strengths?.trim()).slice(0, 3);
-    const recentWeak = state.sessions.slice(-5).reverse().filter(s => s.weaknesses?.trim()).slice(0, 3);
+    const recentStrengths = playedSessions.slice(-5).reverse().filter(s => s.strengths?.trim()).slice(0, 3);
+    const recentWeak = playedSessions.slice(-5).reverse().filter(s => s.weaknesses?.trim()).slice(0, 3);
     const strengthsHTML = `
       <div class="card">
         <h3>💪 Strengths & Growth Areas</h3>
@@ -127,17 +140,18 @@ const Views = (() => {
           </div>
         </div>
         <div class="stat-row">
-          <div class="stat"><div class="stat-num">${state.sessions.length}</div><div class="stat-label">Sessions</div></div>
+          <div class="stat"><div class="stat-num">${playedSessions.length}</div><div class="stat-label">Sessions</div></div>
           <div class="stat"><div class="stat-num">🏅 ${state.badges.length}</div><div class="stat-label">Badges</div></div>
           <div class="stat"><div class="stat-num">${Game.totalXP(state)}</div><div class="stat-label">XP</div></div>
         </div>
       </div>
+      ${nextMatchHTML}
       ${remindHTML}
       ${coachHTML}
       ${focusHTML}
       <div class="card">
         <h3>📈 Performance Trend</h3>
-        ${Charts.trend(state.sessions)}
+        ${Charts.trend(playedSessions)}
       </div>
       ${last ? `
       <div class="card">
@@ -201,18 +215,18 @@ const Views = (() => {
   }
 
   function history(state) {
-    const sessions = [...state.sessions].reverse();
+    const sessions = [...state.sessions].reverse().filter(s => s.status !== 'planned');
     if (!sessions.length) {
       return `<div class="card welcome"><h3>📚 Your Chronicle</h3><p>No sessions yet — your story starts with the first one! Tap ➕ New Session.</p></div>`;
     }
     return `
       <div class="card">
         <h3>📊 Skill Averages (all time)</h3>
-        ${Charts.averages(state.sessions)}
+        ${Charts.averages(sessions)}
       </div>
       <div class="card">
         <h3>🧠 Mind Power Trend</h3>
-        ${Charts.mind(state.sessions)}
+        ${Charts.mind(sessions)}
       </div>
       <h3 class="section-title">All Sessions (${sessions.length})</h3>
       ${sessions.map(s => `

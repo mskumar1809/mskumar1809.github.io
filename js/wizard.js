@@ -24,12 +24,19 @@ const Wizard = (() => {
   ];
 
   const STEPS = ['type', 'activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'review'];
+  const MATCH_PRE = ['type', 'matchpre', 'review'];
+  const MATCH_POST = ['activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'retro', 'review'];
 
-  // Matches get extra steps: targets (before) and retrospective (after).
+  // Matches: plan first (date/opponent/targets), report later (post-match).
   function stepsFor(s) {
-    if (s.type === 'match')
-      return ['type', 'targets', 'activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'retro', 'review'];
+    if (s.type === 'match') return s.__post ? MATCH_POST : MATCH_PRE;
     return STEPS;
+  }
+
+  // Open the post-match report for an already-planned match.
+  function startPost(state, save, refresh, session) {
+    session.__post = true;
+    render(state, save, refresh, 0, session);
   }
 
   function start(state, save, refresh) {
@@ -99,17 +106,25 @@ const Wizard = (() => {
       });
     }
 
-    if (step === 'targets') {
-      card.innerHTML = `<h2>My Match Targets 🎯</h2>
-        <p class="hint">Set your personal targets BEFORE the match. Make them yours — big or small! (Tap a target to remove it)</p>
+    if (step === 'matchpre') {
+      if (!s.matchStats) s.matchStats = { runs: '', balls: '', howOut: '', wickets: '', conceded: '', overs: '', extras: '', catches: '', runOuts: '', result: null, opponent: '', margin: '' };
+      card.innerHTML = `<h2>Match Plan 📋</h2>
+        <p class="hint">Set this up BEFORE the match — when and against whom, plus your personal targets</p>
+        <label class="field-label">Match date 📅</label>
+        <input type="date" id="mpDate" value="${s.date}">
+        <label class="field-label">Opponent 🆚</label>
+        <input type="text" id="mpOpponent" placeholder="e.g. Riverside CC U-10s" value="${escapeHTML(s.matchStats.opponent)}">
+        <label class="field-label">My targets 🎯</label>
         <div class="chips" id="targetChips">
           ${s.targets.map((t, i) => `<button class="chip sel" data-ti="${i}">🎯 ${escapeHTML(t)} ✕</button>`).join('')}
         </div>
         <div class="add-own">
-          <input type="text" id="newTargetInput" placeholder="e.g. score 15 runs, take my first wicket, stay NOT OUT, face 10 balls">
+          <input type="text" id="newTargetInput" placeholder="e.g. score 15 runs, take my first wicket, stay NOT OUT">
           <button class="btn secondary" id="addTargetBtn">➕ Add</button>
         </div>
-        <p class="hint">After the match we'll check which ones you achieved — each achieved target earns reward points! 🎁</p>`;
+        <p class="hint">After the match, open the 🏟️ Matches tab to fill in your post-match report — each achieved target earns reward points! 🎁</p>`;
+      bind('#mpDate', 'change', e => s.date = e.target.value);
+      bind('#mpOpponent', 'input', e => s.matchStats.opponent = e.target.value);
       const addTarget = () => {
         const inp = card.querySelector('#newTargetInput');
         const val = inp.value.trim();
@@ -400,6 +415,15 @@ const Wizard = (() => {
 
     if (step === 'review') {
       const type = Game.SESSION_TYPES[s.type];
+      if (s.type === 'match' && !s.__post) {
+        card.innerHTML = `<h2>Match Plan Ready 📋</h2>
+          <div class="review">
+            <div class="review-row"><b>🏟️ Match${s.matchStats.opponent ? ' vs ' + escapeHTML(s.matchStats.opponent) : ''}</b> — ${formatDate(s.date)}</div>
+            ${s.targets.length ? `<div class="review-row">🎯 ${s.targets.length} targets set:<br>${s.targets.map(t => '• ' + escapeHTML(t)).join('<br>')}</div>` : '<div class="review-row">No targets set yet — add some for bonus reward points!</div>'}
+          </div>
+          <div class="xp-preview">Good luck, champ! 🍀 Come back after the match for the post-match report.</div>`;
+        document.getElementById('wNext').textContent = '🏁 Save Match Plan';
+      } else {
       card.innerHTML = `<h2>All set? 📋</h2>
         <div class="review">
           <div class="review-row"><b>${type.icon} ${type.label}</b>${s.matchStats?.opponent ? ' vs ' + escapeHTML(s.matchStats.opponent) : ''} — ${formatDate(s.date)}</div>
@@ -418,6 +442,7 @@ const Wizard = (() => {
           ${s.coach && (s.coach.feedback || s.coach.drills || s.coach.rating) ? `<div class="review-row">👨‍🏫 Coach${s.coach.name ? ' ' + escapeHTML(s.coach.name) : ''}${s.coach.rating ? ` (${'★'.repeat(s.coach.rating)})` : ''}${s.coach.drills ? ' + drills to practise' : ''}</div>` : ''}
         </div>
         <div class="xp-preview">You'll earn <b>+${Game.xpForSession(s)} XP</b>${Game.rpForSession(s).rp ? ` and <b>+${Game.rpForSession(s).rp} 🎁 reward points</b>` : ''} 🎉</div>`;
+      }
     }
 
     window.scrollTo(0, 0);
@@ -458,7 +483,30 @@ const Wizard = (() => {
   }
 
   function finish(state, save, refresh, s) {
-    state.sessions.push(s);
+    // Pre-match plan: store it as a planned match, tiny XP, done.
+    if (s.type === 'match' && !s.__post) {
+      s.status = 'planned';
+      delete s.__post;
+      state.sessions.push(s);
+      Game.addXP(state, 5, 'Match planned');
+      const newBadges = Game.checkBadges(state);
+      save(state);
+      App.toast('Match plan saved! +5 XP 📋 Good luck! 🍀');
+      Mascot.say(`A match${s.matchStats.opponent ? ' vs ' + s.matchStats.opponent : ''}! Set your goals high — see you after the match! 🍀`, 7000);
+      refresh('matches');
+      if (newBadges.length) setTimeout(() => App.showBadgesModal(newBadges), 600);
+      return;
+    }
+
+    if (s.__post) {
+      delete s.__post;
+      // replace the planned entry with the full post-match record
+      const i = state.sessions.findIndex(x => x.id === s.id);
+      if (i >= 0) state.sessions[i] = s; else state.sessions.push(s);
+    } else {
+      state.sessions.push(s);
+    }
+    s.status = 'played';
     if (s.coach?.name?.trim()) {
       state.settings.coaches = state.settings.coaches || [];
       const n = s.coach.name.trim();
@@ -498,5 +546,5 @@ const Wizard = (() => {
   function escapeHTML(t) { return String(t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); }
 
-  return { start, STEPS, ACTIVITIES, MIND_FEELINGS, formatDate, escapeHTML };
+  return { start, startPost, STEPS, ACTIVITIES, MIND_FEELINGS, formatDate, escapeHTML };
 })();
