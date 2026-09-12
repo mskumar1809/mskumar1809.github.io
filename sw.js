@@ -1,4 +1,4 @@
-const CACHE = 'cricket-chronicles-v11';
+const CACHE = 'cricket-chronicles-v12';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './css/styles.css',
@@ -19,8 +19,23 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Offline-first: serve from cache, fall back to network for freshness.
+// Navigations (page loads): network-first so updates apply on the FIRST
+// relaunch; everything else cache-first for instant offline loads.
 self.addEventListener('fetch', e => {
+  const isNavigation = e.request.mode === 'navigate' ||
+    (e.request.destination === 'document' || e.request.destination === '');
+  if (isNavigation && e.request.method === 'GET') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+        }
+        return res;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached =>
       cached || fetch(e.request).then(res => {

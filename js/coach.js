@@ -36,7 +36,7 @@ const CoachView = (() => {
       <div class="card coach-card">
         <h3>📋 Current Plan — ${e(nameOf(latest))}</h3>
         <p class="muted small">Given after the ${Game.SESSION_TYPES[latest.type].label.toLowerCase()} on ${Wizard.formatDate(latest.date)} · active until the next coached session</p>
-        ${latest.coach.drills ? `<div class="coach-drills">🎯 ${e(latest.coach.drills)}</div>` : ''}
+        ${latest.coach.drills ? `<div class="coach-drills">${latest.type === 'match' ? '🎯 <b>Next steps before next match:</b> ' : '🎯 '}${e(latest.coach.drills)}</div>` : ''}
         ${latest.coach.feedback ? `<div class="coach-feedback">💬 ${e(latest.coach.feedback)}${latest.coach.rating ? `<span class="coach-stars"> ${'★'.repeat(latest.coach.rating)}</span>` : ''}</div>` : ''}
       </div>` : ''}
 
@@ -93,7 +93,7 @@ const CoachView = (() => {
             ${s.coach.rating ? `<span class="coach-stars">${'★'.repeat(s.coach.rating)}</span>` : ''}
           </div>
           ${s.coach.feedback ? `<div class="coach-feedback">💬 ${e(s.coach.feedback)}</div>` : ''}
-          ${s.coach.drills ? `<div class="coach-feedback">🎯 ${e(s.coach.drills)}</div>` : ''}
+          ${s.coach.drills ? `<div class="coach-feedback">${s.type === 'match' ? '🎯 <b>Next steps:</b> ' : '🎯 '}${e(s.coach.drills)}</div>` : ''}
           <div class="muted small" style="margin-top:6px">Tap to see the full session →</div>
         </div>`).join('')}
       ${last === sessions[sessions.length - 1] ? '' : ''}`;

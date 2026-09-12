@@ -369,19 +369,20 @@ const Wizard = (() => {
     }
 
     if (step === 'coach') {
-      card.innerHTML = `<h2>Coach's Corner 👨‍🏫</h2>
+      const isMatch = s.type === 'match';
+      card.innerHTML = `<h2>${isMatch ? "Post-Match Coach Review 👨‍🏫" : "Coach's Corner 👨‍🏫"}</h2>
         <p class="hint">Hand the phone to your coach — this part is typed by the Coach, in their own words! (Skip if no coach today)</p>
         <label class="field-label">Coach's name</label>
         <input type="text" id="coachName" list="coachList" placeholder="e.g. Coach Ravi" value="${s.coach.name.replace(/"/g, '&quot;')}">
         ${(state.settings.coaches || []).length ? `<datalist id="coachList">${state.settings.coaches.map(c => `<option value="${escapeHTML(c)}">`).join('')}</datalist>` : ''}
-        <label class="field-label">How I rate today's session</label>
+        <label class="field-label">${isMatch ? 'How I rate his match today' : 'How I rate today\'s session'}</label>
         <div class="stars big" id="coachStars">
           ${[1,2,3,4,5].map(n => `<button class="star ${s.coach.rating >= n ? 'on' : ''}" data-n="${n}">★</button>`).join('')}
         </div>
-        <label class="field-label">My feedback today</label>
-        <textarea id="coachFeedback" rows="3" placeholder="e.g. Great bat swing and balance today. But your head falls over on the leg side when playing across.">${s.coach.feedback}</textarea>
-        <label class="field-label">Drills I want practised before the next session 🎯</label>
-        <textarea id="coachDrills" rows="3" placeholder="e.g. Shadow batting with head still — 10 mins every day. 20 throwdowns on the short ball.">${s.coach.drills}</textarea>`;
+        <label class="field-label">${isMatch ? 'My match feedback — what won/lost us this match' : 'My feedback today'}</label>
+        <textarea id="coachFeedback" rows="3" placeholder="${isMatch ? 'e.g. Rotated strike well under pressure; got out playing across the line on a good pitch' : 'e.g. Great bat swing and balance today. But your head falls over on the leg side when playing across.'}">${s.coach.feedback}</textarea>
+        <label class="field-label">${isMatch ? 'Next steps I want BEFORE the next match 🎯' : 'Drills I want practised before the next session 🎯'}</label>
+        <textarea id="coachDrills" rows="3" placeholder="${isMatch ? 'e.g. 20 mins short-ball practice daily; visualise the innings before going in' : 'e.g. Shadow batting with head still — 10 mins every day. 20 throwdowns on the short ball.'}">${s.coach.drills}</textarea>`;
       bind('#coachName', 'input', e => s.coach.name = e.target.value);
       card.querySelectorAll('#coachStars .star').forEach(st => st.onclick = () => {
         const n = +st.dataset.n;
