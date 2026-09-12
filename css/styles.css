@@ -175,6 +175,15 @@ input:focus, textarea:focus { outline: none; border-color: var(--green); }
 .planned-card { border: 2px solid #7cb8f0; background: #f2f8ff; }
 .planned-head { display: flex; justify-content: space-between; align-items: center; }
 
+/* Post-match targets check */
+.target-check-card { background: #f6faf7; border: 2px solid #e0eae3; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+.target-check-card.achieved { border-color: var(--green); background: var(--green-light); }
+.tc-row { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+.tc-reward { color: var(--amber); font-size: 14px; }
+.tc-actions { display: flex; gap: 8px; margin: 10px 0 8px; }
+.tc-actions .btn { flex: 1; font-size: 14px; padding: 9px 6px; }
+.tc-actual { font-size: 14px; }
+
 /* Action-oriented home */
 .plays-card { border: 2px solid #7cc79a; background: #f2fbf6; }
 .cta-log {

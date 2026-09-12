@@ -25,7 +25,7 @@ const Wizard = (() => {
 
   const STEPS = ['type', 'activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'review'];
   const MATCH_PRE = ['type', 'matchpre', 'review'];
-  const MATCH_POST = ['activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'retro', 'review'];
+  const MATCH_POST = ['targetsCheck', 'activities', 'scores', 'strengths', 'injury', 'mind', 'coach', 'retro', 'review'];
 
   // Matches: plan first (date/opponent/targets), report later (post-match).
   function stepsFor(s) {
@@ -61,6 +61,7 @@ const Wizard = (() => {
       matchStats: null,     // structured match stats (matches only)
       targets: [],          // pre-match personal targets
       targetsStatus: [],    // achieved flags, parallel to targets
+      targetsActual: [],    // what actually happened, parallel to targets
       highlights: [],       // free-text personal bests
       retrospective: '',    // what could have been done better
       strengths: '', weaknesses: '',
@@ -154,6 +155,35 @@ const Wizard = (() => {
         s.targetsStatus.splice(i, 1);
         render(state, save, refresh, stepIdx, s);
       });
+    }
+
+    if (step === 'targetsCheck') {
+      card.innerHTML = `<h2>Targets Check 🎯</h2>
+        <p class="hint">Your match targets — did you achieve them? What actually happened? Each achieved target = +5 🎁 reward points!</p>
+        ${s.targets.length ? s.targets.map((t, i) => `
+          <div class="target-check-card ${s.targetsStatus[i] ? 'achieved' : ''}">
+            <div class="tc-row">
+              <span class="tc-target">🎯 ${escapeHTML(t)}</span>
+              <span class="tc-reward">${s.targetsStatus[i] ? '+5 🎁' : ''}</span>
+            </div>
+            <div class="tc-actions">
+              <button class="btn ${s.targetsStatus[i] === true ? 'primary' : 'secondary'} tc-yes" data-ti="${i}">✅ Achieved</button>
+              <button class="btn ${s.targetsStatus[i] === false ? 'primary' : 'secondary'} tc-no" data-ti="${i}">❌ Not yet</button>
+            </div>
+            <input type="text" class="tc-actual" data-ti="${i}" placeholder="What actually happened? e.g. scored 18 runs" value="${escapeHTML(s.targetsActual[i] || '')}">
+          </div>`).join('') : '<p class="hint">No targets were set before this match — set some next time to earn bonus reward points!</p>'}`;
+      card.querySelectorAll('.tc-yes').forEach(b => b.onclick = () => {
+        s.targetsStatus[+b.dataset.ti] = true;
+        render(state, save, refresh, stepIdx, s);
+      });
+      card.querySelectorAll('.tc-no').forEach(b => b.onclick = () => {
+        s.targetsStatus[+b.dataset.ti] = false;
+        render(state, save, refresh, stepIdx, s);
+      });
+      card.querySelectorAll('.tc-actual').forEach(inp => inp.addEventListener('input', e => {
+        s.targetsActual[+inp.dataset.ti] = e.target.value;
+      }));
+      Voice.wire(card);
     }
 
     if (step === 'activities') {
@@ -406,23 +436,12 @@ const Wizard = (() => {
     }
 
     if (step === 'retro') {
+      const achieved = Game.achievedTargets(s).length;
       card.innerHTML = `<h2>Match Retrospective 🔍</h2>
-        <p class="hint">The best players dissect every match. Let's see how you did against your targets!</p>
-        ${s.targets.length ? `
-          <label class="field-label">🎯 Did you achieve your targets?</label>
-          ${s.targets.map((t, i) => `
-            <button class="target-check ${s.targetsStatus[i] ? 'achieved' : ''}" data-ti="${i}">
-              ${s.targetsStatus[i] ? '✅' : '⬜'} ${escapeHTML(t)} ${s.targetsStatus[i] ? '· +5 🎁' : ''}
-            </button>`).join('')}
-        ` : '<p class="hint">No targets were set before this match — set some next time to earn bonus reward points!</p>'}
+        <p class="hint">The best players dissect every match — what's the lesson from this one?</p>
+        ${s.targets.length ? `<div class="xp-preview">🎯 Targets: ${achieved}/${s.targets.length} achieved${achieved === s.targets.length ? ' — PERFECT! 💯' : ''}</div>` : ''}
         <label class="field-label">🤔 What could have been done for a better result?</label>
-        <textarea id="wRetro" rows="3" placeholder="e.g. I could have rotated strike instead of blocking; warmed up better before bowling">${s.retrospective}</textarea>
-        <p class="hint">💡 Each achieved target = +5 reward points 🎁</p>`;
-      card.querySelectorAll('.target-check').forEach(b => b.onclick = () => {
-        const i = +b.dataset.ti;
-        s.targetsStatus[i] = !s.targetsStatus[i];
-        render(state, save, refresh, stepIdx, s);
-      });
+        <textarea id="wRetro" rows="3" placeholder="e.g. I could have rotated strike instead of blocking; warmed up better before bowling">${s.retrospective}</textarea>`;
       bind('#wRetro', 'input', e => s.retrospective = e.target.value);
     }
 
@@ -441,7 +460,7 @@ const Wizard = (() => {
         <div class="review">
           <div class="review-row"><b>${type.icon} ${type.label}</b>${s.matchStats?.opponent ? ' vs ' + escapeHTML(s.matchStats.opponent) : ''} — ${formatDate(s.date)}</div>
           ${s.type === 'match' && s.matchStats ? matchStatsLine(s.matchStats) : ''}
-          ${s.targets.length ? `<div class="review-row">🎯 Targets: ${Game.achievedTargets(s).length}/${s.targets.length} achieved</div>` : ''}
+          ${s.targets.length ? `<div class="review-row">🎯 Targets: ${Game.achievedTargets(s).length}/${s.targets.length} achieved${s.targets.some((t, i) => s.targetsStatus[i] && s.targetsActual[i]) ? '<br>' + s.targets.map((t, i) => s.targetsStatus[i] ? `✅ ${escapeHTML(t)}${s.targetsActual[i] ? ' → ' + escapeHTML(s.targetsActual[i]) : ''}` : null).filter(Boolean).join('<br>') : ''}</div>` : ''}
           ${s.highlights.length ? `<div class="review-row">⭐ ${s.highlights.map(escapeHTML).join(' · ')}</div>` : ''}
           ${s.activities.length ? `<div class="review-row">✅ ${s.type === 'match' ? s.activities.length + ' match events' : s.activities.length + ' activities'}</div>` : ''}
           ${Object.entries(s.scores).filter(([k, v]) => v).map(([k, v]) =>

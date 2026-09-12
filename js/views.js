@@ -258,7 +258,7 @@ const Views = (() => {
           ${s.matchStats.result ? `<div class="detail-row">${s.matchStats.result === 'won' ? '🎉' : s.matchStats.result === 'lost' ? '😢' : '🤝'} <b>${s.matchStats.result === 'won' ? 'WON' : s.matchStats.result === 'lost' ? 'Lost' : s.matchStats.result === 'tied' ? 'Tied' : 'Draw'}</b> the match${s.matchStats.margin ? ' ' + e(s.matchStats.margin) : ''}</div>` : ''}
         ` : ''}
         ${s.targets?.length ? `<div class="detail-row">🎯 <b>Targets:</b><br>${s.targets.map((t, i) =>
-          `${s.targetsStatus?.[i] ? '✅' : '⬜'} ${e(t)}`).join('<br>')}</div>` : ''}
+          `${s.targetsStatus?.[i] ? '✅' : '⬜'} ${e(t)}${s.targetsActual?.[i] ? ' → <b>' + e(s.targetsActual[i]) + '</b>' : ''}`).join('<br>')}</div>` : ''}
         ${s.highlights?.length ? `<div class="detail-row highlight">⭐ <b>Personal bests:</b> ${s.highlights.map(e).join(' · ')}</div>` : ''}
         ${s.retrospective ? `<div class="detail-row retro">🔍 <b>Retro:</b> ${e(s.retrospective)}</div>` : ''}
         ${s.activities.length ? `<div class="detail-row"><b>Activities:</b> ${s.activities.map(e).join(', ')}</div>` : ''}

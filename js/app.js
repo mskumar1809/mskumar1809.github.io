@@ -337,7 +337,7 @@ const App = (() => {
     if ('serviceWorker' in navigator) {
       // Versioned registration URL: changing the query forces a fresh
       // service-worker install even under the 24h update-check throttle.
-      navigator.serviceWorker.register('sw.js?v=15', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('sw.js?v=16', { updateViaCache: 'none' })
         .then(reg => reg.update().catch(() => {}))
         .catch(() => {});
     }
