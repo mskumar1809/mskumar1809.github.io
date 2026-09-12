@@ -335,7 +335,11 @@ const App = (() => {
       });
     }
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      // Versioned registration URL: changing the query forces a fresh
+      // service-worker install even under the 24h update-check throttle.
+      navigator.serviceWorker.register('sw.js?v=14', { updateViaCache: 'none' })
+        .then(reg => reg.update().catch(() => {}))
+        .catch(() => {});
     }
     if ('Notification' in window && Notification.permission === 'default' && state.sessions.length >= 2) {
       // Ask once the habit has started forming.
