@@ -121,7 +121,7 @@ const App = (() => {
     });
 
     on('btnQuickLog', () => refresh('log'));
-    on('btnPlanMatch', () => refresh('log'));
+    on('btnPlanMatch', () => { currentTab = 'log'; Wizard.startMatchPlan(state, save, refresh); });
 
     document.querySelectorAll('.postmatch-btn').forEach(b => b.onclick = () => {
       const s = state.sessions.find(x => x.id === b.dataset.sid);
@@ -337,7 +337,7 @@ const App = (() => {
     if ('serviceWorker' in navigator) {
       // Versioned registration URL: changing the query forces a fresh
       // service-worker install even under the 24h update-check throttle.
-      navigator.serviceWorker.register('sw.js?v=14', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('sw.js?v=15', { updateViaCache: 'none' })
         .then(reg => reg.update().catch(() => {}))
         .catch(() => {});
     }

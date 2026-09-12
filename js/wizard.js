@@ -39,8 +39,20 @@ const Wizard = (() => {
     render(state, save, refresh, 0, session);
   }
 
+  // Open the wizard directly at match planning (from the Matches tab).
+  function startMatchPlan(state, save, refresh) {
+    const session = freshSession();
+    session.type = 'match';
+    render(state, save, refresh, 1, session); // step 1 of MATCH_PRE = matchpre
+  }
+
   function start(state, save, refresh) {
-    const session = {
+    const session = freshSession();
+    render(state, save, refresh, 0, session);
+  }
+
+  function freshSession() {
+    return {
       id: 's' + Date.now(),
       date: new Date().toISOString().slice(0, 10),
       type: null, activities: [],
@@ -57,7 +69,6 @@ const Wizard = (() => {
       coach: { name: '', rating: null, feedback: '', drills: '' },
       focusNote: ''         // did you work on a focus area today?
     };
-    render(state, save, refresh, 0, session);
   }
 
   function render(state, save, refresh, stepIdx, s) {
@@ -548,5 +559,5 @@ const Wizard = (() => {
   function escapeHTML(t) { return String(t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); }
 
-  return { start, startPost, STEPS, ACTIVITIES, MIND_FEELINGS, formatDate, escapeHTML };
+  return { start, startPost, startMatchPlan, STEPS, ACTIVITIES, MIND_FEELINGS, formatDate, escapeHTML };
 })();
