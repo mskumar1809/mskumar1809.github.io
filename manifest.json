@@ -1,6 +1,6 @@
 {
   "name": "Cric Chronicles",
-  "short_name": "Cric",
+  "short_name": "CC",
   "description": "Record cricket sessions, track progress, earn rewards",
   "start_url": "./index.html",
   "display": "standalone",
