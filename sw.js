@@ -1,4 +1,4 @@
-const CACHE = 'cricket-chronicles-v12';
+const CACHE = 'cricket-chronicles-v13';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './css/styles.css',

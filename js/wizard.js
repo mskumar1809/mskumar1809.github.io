@@ -92,8 +92,9 @@ const Wizard = (() => {
       card.innerHTML = `<h2>What did you do today? 🏏</h2>
         <label class="field-label">Date</label>
         <input type="date" id="wDate" value="${s.date}" max="${new Date().toISOString().slice(0,10)}">
+        <p class="hint">Matches live in the 🏟️ Matches tab — plan before, report after!</p>
         <div class="type-grid">
-          ${Object.entries(Game.SESSION_TYPES).map(([k, t]) => `
+          ${Object.entries(Game.SESSION_TYPES).filter(([k]) => k !== 'match').map(([k, t]) => `
             <button class="type-card ${s.type === k ? 'sel' : ''}" data-type="${k}">
               <span class="type-icon">${t.icon}</span><span>${t.label}</span>
             </button>`).join('')}
