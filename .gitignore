@@ -1,0 +1,6 @@
+# OS
+.DS_Store
+
+# Never commit personal data / sync credentials
+*-backup-*.json
+cricket-chronicles-backup-*.json

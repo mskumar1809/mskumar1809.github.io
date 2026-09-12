@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a7a4a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cric Chronicles 🏏</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="logo">🏏</span>
+      <div>
+        <div class="app-title">Cric Chronicles</div>
+        <div class="player-line" id="playerLine">Welcome, Champion!</div>
+      </div>
+    </div>
+    <div class="topbar-right" id="xpBadge"></div>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab" data-tab="home" aria-label="Home"><span class="tab-icon">🏠</span><span class="tab-label">Home</span></button>
+    <button class="tab" data-tab="log" aria-label="New session"><span class="tab-icon">➕</span><span class="tab-label">New Session</span></button>
+    <button class="tab" data-tab="coach" aria-label="Coach"><span class="tab-icon">👨‍🏫</span><span class="tab-label">Coach</span></button>
+    <button class="tab" data-tab="history" aria-label="History"><span class="tab-icon">📚</span><span class="tab-label">History</span></button>
+    <button class="tab" data-tab="rewards" aria-label="Rewards"><span class="tab-icon">🏆</span><span class="tab-label">Rewards</span></button>
+  </nav>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script src="js/storage.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/media.js"></script>
+<script src="js/mascot.js"></script>
+<script src="js/mentor.js"></script>
+<script src="js/onboarding.js"></script>
+<script src="js/gamification.js"></script>
+<script src="js/wizard.js"></script>
+<script src="js/views.js"></script>
+<script src="js/coach.js"></script>
+<script src="js/app.js"></script>
+<script src="js/charts.js"></script>
+</body>
+</html>
